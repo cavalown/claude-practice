@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #eee;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+      color: #4ecca3;
+      text-transform: uppercase;
+    }
+
+    #scoreboard {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 16px;
+      font-size: 1rem;
+      color: #aaa;
+    }
+
+    #scoreboard span { color: #fff; font-weight: bold; }
+
+    canvas {
+      border: 2px solid #4ecca3;
+      border-radius: 4px;
+      box-shadow: 0 0 30px rgba(78, 204, 163, 0.3);
+    }
+
+    #overlay {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    #overlay h2 {
+      font-size: 2.5rem;
+      color: #4ecca3;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    #overlay p {
+      color: #aaa;
+      font-size: 1rem;
+    }
+
+    #overlay .big-score {
+      font-size: 1.4rem;
+      color: #fff;
+    }
+
+    #start-btn {
+      margin-top: 8px;
+      padding: 10px 28px;
+      background: #4ecca3;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+
+    #start-btn:hover { background: #38b28a; }
+
+    #hint {
+      margin-top: 16px;
+      color: #555;
+      font-size: 0.8rem;
+    }
+
+    #speed-selector {
+      display: flex;
+      gap: 8px;
+    }
+
+    #speed-selector button, #food-selector button {
+      padding: 6px 16px;
+      background: transparent;
+      color: #aaa;
+      border: 1px solid #333;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: all 0.2s;
+    }
+
+    #speed-selector button:hover, #food-selector button:hover { border-color: #4ecca3; color: #4ecca3; }
+    #speed-selector button.active, #food-selector button.active { background: #4ecca3; color: #1a1a2e; border-color: #4ecca3; font-weight: bold; }
+
+    #food-selector, #super-selector { display: flex; gap: 8px; }
+
+    #speed-selector button, #food-selector button, #super-selector button {
+      padding: 6px 16px;
+      background: transparent;
+      color: #aaa;
+      border: 1px solid #333;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: all 0.2s;
+    }
+
+    #super-selector button:hover { border-color: #ffd700; color: #ffd700; }
+    #super-selector button.active { background: #ffd700; color: #1a1a2e; border-color: #ffd700; font-weight: bold; }
+
+    .option-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .option-label {
+      font-size: 0.75rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Snake</h1>
+
+  <div id="scoreboard">
+    SCORE: <span id="score">0</span> &nbsp;&nbsp; BEST: <span id="best">0</span>
+  </div>
+
+  <div style="position: relative;">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <div id="overlay">
+      <h2 id="overlay-title">Snake</h2>
+      <p id="overlay-sub" class="big-score"></p>
+      <div class="option-row">
+        <span class="option-label">Speed</span>
+        <div id="speed-selector">
+          <button data-speed="200">Slow</button>
+          <button data-speed="120" class="active">Normal</button>
+          <button data-speed="60">Fast</button>
+        </div>
+      </div>
+      <div class="option-row">
+        <span class="option-label">Food</span>
+        <div id="food-selector">
+          <button data-food="1">1</button>
+          <button data-food="2" class="active">2</button>
+          <button data-food="3">3</button>
+        </div>
+      </div>
+      <div class="option-row">
+        <span class="option-label">Super Mode</span>
+        <div id="super-selector">
+          <button data-super="off" class="active">Off</button>
+          <button data-super="on">On</button>
+        </div>
+      </div>
+      <button id="start-btn">Start</button>
+      <p id="hint">Arrow keys or WASD &nbsp;|&nbsp; Space to pause</p>
+    </div>
+  </div>
+
+</body>
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlaySub = document.getElementById('overlay-sub');
+  const startBtn = document.getElementById('start-btn');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+
+  const COLS = 20, ROWS = 20;
+  const CELL = canvas.width / COLS;
+  let TICK = 120;
+
+  let snake, dir, nextDir, foods, score, best, gameLoop, running, paused, foodCount = 2;
+  let superMode = false, superFood = null, superSpawnTimer, superExpireTimer, growPending = 0;
+
+  best = parseInt(localStorage.getItem('snake-best') || '0');
+  bestEl.textContent = best;
+
+  function init() {
+    snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    scoreEl.textContent = 0;
+    foods = [];
+    for (let i = 0; i < foodCount; i++) spawnFood();
+    superFood = null;
+    growPending = 0;
+    clearTimeout(superExpireTimer);
+    clearInterval(superSpawnTimer);
+    if (superMode) {
+      superSpawnTimer = setInterval(spawnSuperFood, 10000);
+    }
+  }
+
+  function spawnSuperFood() {
+    if (superFood) return;
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+    } while (
+      snake.some(s => s.x === pos.x && s.y === pos.y) ||
+      foods.some(f => f.x === pos.x && f.y === pos.y)
+    );
+    superFood = pos;
+    superExpireTimer = setTimeout(() => { superFood = null; }, 6000);
+  }
+
+  function spawnFood() {
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+    } while (
+      snake.some(s => s.x === pos.x && s.y === pos.y) ||
+      foods.some(f => f.x === pos.x && f.y === pos.y)
+    );
+    foods.push(pos);
+  }
+
+  function tick() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS ||
+        snake.some(s => s.x === head.x && s.y === head.y)) {
+      endGame();
+      return;
+    }
+
+    snake.unshift(head);
+
+    if (superFood && head.x === superFood.x && head.y === superFood.y) {
+      clearTimeout(superExpireTimer);
+      superFood = null;
+      growPending += 2;
+      score += 2;
+      scoreEl.textContent = score;
+      if (score > best) {
+        best = score;
+        bestEl.textContent = best;
+        localStorage.setItem('snake-best', best);
+      }
+    }
+
+    const eatenIndex = foods.findIndex(f => f.x === head.x && f.y === head.y);
+    if (eatenIndex !== -1) {
+      score++;
+      scoreEl.textContent = score;
+      if (score > best) {
+        best = score;
+        bestEl.textContent = best;
+        localStorage.setItem('snake-best', best);
+      }
+      foods.splice(eatenIndex, 1);
+      spawnFood();
+      growPending++;
+    }
+
+    if (growPending > 0) {
+      growPending--;
+    } else {
+      snake.pop();
+    }
+
+    draw();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0f0f23';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid dots
+    ctx.fillStyle = '#1e1e3a';
+    for (let x = 0; x < COLS; x++) {
+      for (let y = 0; y < ROWS; y++) {
+        ctx.fillRect(x * CELL + CELL / 2 - 1, y * CELL + CELL / 2 - 1, 2, 2);
+      }
+    }
+
+    // Food
+    foods.forEach(food => {
+      const fx = food.x * CELL + CELL / 2;
+      const fy = food.y * CELL + CELL / 2;
+      ctx.shadowColor = '#ff6b6b';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ff6b6b';
+      ctx.beginPath();
+      ctx.arc(fx, fy, CELL / 2 - 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+
+    // Super food
+    if (superFood) {
+      const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 200);
+      const sx = superFood.x * CELL + CELL / 2;
+      const sy = superFood.y * CELL + CELL / 2;
+      const r = (CELL / 2 - 2) * pulse;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 20 * pulse;
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const x = sx + r * Math.cos(angle);
+        const y = sy + r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Snake
+    snake.forEach((seg, i) => {
+      const t = 1 - i / snake.length;
+      ctx.fillStyle = i === 0 ? '#4ecca3' : `hsl(162, 60%, ${20 + t * 30}%)`;
+      ctx.shadowColor = i === 0 ? '#4ecca3' : 'transparent';
+      ctx.shadowBlur = i === 0 ? 10 : 0;
+      const pad = i === 0 ? 1 : 2;
+      ctx.beginPath();
+      ctx.roundRect(seg.x * CELL + pad, seg.y * CELL + pad, CELL - pad * 2, CELL - pad * 2, 3);
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+  }
+
+  function togglePause() {
+    if (!running) return;
+    paused = !paused;
+    if (paused) {
+      clearInterval(gameLoop);
+      clearInterval(superSpawnTimer);
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#4ecca3';
+      ctx.font = 'bold 28px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+      ctx.font = '14px Courier New';
+      ctx.fillStyle = '#aaa';
+      ctx.fillText('Press Space to resume', canvas.width / 2, canvas.height / 2 + 32);
+    } else {
+      gameLoop = setInterval(tick, TICK);
+      if (superMode) superSpawnTimer = setInterval(spawnSuperFood, 10000);
+    }
+  }
+
+  function startGame() {
+    overlay.style.display = 'none';
+    init();
+    running = true;
+    paused = false;
+    draw();
+    gameLoop = setInterval(tick, TICK);
+  }
+
+  function endGame() {
+    clearInterval(gameLoop);
+    clearInterval(superSpawnTimer);
+    clearTimeout(superExpireTimer);
+    running = false;
+    overlayTitle.textContent = 'Game Over';
+    overlaySub.textContent = `Score: ${score}`;
+    startBtn.textContent = 'Play Again';
+    document.getElementById('hint').style.display = 'none';
+    overlay.style.display = 'flex';
+  }
+
+  document.querySelectorAll('#speed-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#speed-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      TICK = parseInt(btn.dataset.speed);
+    });
+  });
+
+  document.querySelectorAll('#food-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#food-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      foodCount = parseInt(btn.dataset.food);
+    });
+  });
+
+  document.querySelectorAll('#super-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#super-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      superMode = btn.dataset.super === 'on';
+    });
+  });
+
+  startBtn.addEventListener('click', startGame);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); togglePause(); return; }
+    if (!running || paused) return;
+    const map = {
+      ArrowUp:    { x: 0, y: -1 }, w: { x: 0, y: -1 },
+      ArrowDown:  { x: 0, y:  1 }, s: { x: 0, y:  1 },
+      ArrowLeft:  { x: -1, y: 0 }, a: { x: -1, y: 0 },
+      ArrowRight: { x:  1, y: 0 }, d: { x:  1, y: 0 },
+    };
+    const d = map[e.key];
+    if (d && !(d.x === -dir.x && d.y === -dir.y)) {
+      nextDir = d;
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+    }
+  });
+</script>
+</html>
