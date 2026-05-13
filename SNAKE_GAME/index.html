@@ -8,191 +8,265 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #1a1a2e;
+      background: #0d0d1a;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       font-family: 'Courier New', monospace;
       color: #eee;
       user-select: none;
     }
 
-    h1 {
-      font-size: 2rem;
-      letter-spacing: 0.2em;
-      margin-bottom: 12px;
+    .game-card {
+      background: #13132a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      box-shadow: 0 0 60px rgba(78, 204, 163, 0.08), 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      width: 560px;
+    }
+
+    /* ── Header ── */
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e1e3a;
+      background: #0f0f22;
+    }
+
+    .game-header h1 {
+      font-size: 1.3rem;
+      letter-spacing: 0.25em;
       color: #4ecca3;
       text-transform: uppercase;
     }
 
-    #scoreboard {
+    .scores {
       display: flex;
-      gap: 40px;
-      margin-bottom: 16px;
-      font-size: 1rem;
-      color: #aaa;
+      gap: 24px;
     }
 
-    #scoreboard span { color: #fff; font-weight: bold; }
+    .score-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .score-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: #444;
+      text-transform: uppercase;
+    }
+
+    .score-item span {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+      min-width: 2ch;
+      text-align: center;
+    }
+
+    /* ── Canvas ── */
+    .canvas-wrap {
+      position: relative;
+      line-height: 0;
+      transition: box-shadow 0.3s ease-out;
+    }
+
+    @keyframes super-border-pulse {
+      0%, 100% { box-shadow: 0 0 0 2px #ffd700, 0 0 18px rgba(255,215,0,0.6); }
+      50%       { box-shadow: 0 0 0 4px #ffd700, 0 0 50px #ffd700, 0 0 90px rgba(255,215,0,0.4); }
+    }
+
+    .canvas-wrap.super-flash {
+      animation: super-border-pulse 0.4s ease-in-out 5;
+    }
 
     canvas {
-      border: 2px solid #4ecca3;
-      border-radius: 4px;
-      box-shadow: 0 0 30px rgba(78, 204, 163, 0.3);
+      display: block;
+      width: 100%;
+      height: auto;
     }
 
+    /* ── Overlay ── */
     #overlay {
       position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 14px;
+      background: rgba(13, 13, 26, 0.82);
+      backdrop-filter: blur(2px);
     }
 
     #overlay h2 {
-      font-size: 2.5rem;
+      font-size: 2.2rem;
       color: #4ecca3;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
-    }
-
-    #overlay p {
-      color: #aaa;
-      font-size: 1rem;
+      letter-spacing: 0.2em;
+      text-shadow: 0 0 20px rgba(78, 204, 163, 0.6);
     }
 
     #overlay .big-score {
-      font-size: 1.4rem;
-      color: #fff;
+      font-size: 1.1rem;
+      color: #aaa;
+      letter-spacing: 0.1em;
     }
 
     #start-btn {
-      margin-top: 8px;
-      padding: 10px 28px;
+      padding: 10px 32px;
       background: #4ecca3;
-      color: #1a1a2e;
+      color: #0d0d1a;
       border: none;
-      border-radius: 4px;
-      font-size: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       font-family: inherit;
       font-weight: bold;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       cursor: pointer;
       text-transform: uppercase;
-      transition: background 0.2s;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 0 16px rgba(78, 204, 163, 0.35);
     }
 
-    #start-btn:hover { background: #38b28a; }
+    #start-btn:hover {
+      background: #5de8b8;
+      box-shadow: 0 0 24px rgba(78, 204, 163, 0.55);
+    }
 
     #hint {
-      margin-top: 16px;
-      color: #555;
-      font-size: 0.8rem;
+      font-size: 0.72rem;
+      color: #383858;
+      letter-spacing: 0.05em;
     }
 
-    #speed-selector {
+    /* ── Controls ── */
+    .controls {
       display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding: 14px 20px 16px;
+      border-top: 1px solid #1e1e3a;
+      background: #0f0f22;
       gap: 8px;
     }
 
-    #speed-selector button, #food-selector button {
-      padding: 6px 16px;
-      background: transparent;
-      color: #aaa;
-      border: 1px solid #333;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      transition: all 0.2s;
-    }
-
-    #speed-selector button:hover, #food-selector button:hover { border-color: #4ecca3; color: #4ecca3; }
-    #speed-selector button.active, #food-selector button.active { background: #4ecca3; color: #1a1a2e; border-color: #4ecca3; font-weight: bold; }
-
-    #food-selector, #super-selector { display: flex; gap: 8px; }
-
-    #speed-selector button, #food-selector button, #super-selector button {
-      padding: 6px 16px;
-      background: transparent;
-      color: #aaa;
-      border: 1px solid #333;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      transition: all 0.2s;
-    }
-
-    #super-selector button:hover { border-color: #ffd700; color: #ffd700; }
-    #super-selector button.active { background: #ffd700; color: #1a1a2e; border-color: #ffd700; font-weight: bold; }
-
-    .option-row {
+    .option-group {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
     }
 
     .option-label {
-      font-size: 0.75rem;
-      color: #555;
+      font-size: 0.7rem;
+      color: #888;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
     }
+
+    .btn-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-row button {
+      padding: 5px 12px;
+      background: transparent;
+      color: #555;
+      border: 1px solid #252540;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: all 0.15s;
+    }
+
+    .btn-row button:hover {
+      border-color: #4ecca3;
+      color: #4ecca3;
+    }
+
+    .btn-row button.active {
+      background: #4ecca3;
+      color: #0d0d1a;
+      border-color: #4ecca3;
+      font-weight: bold;
+    }
+
+    #super-selector button:hover { border-color: #ffd700; color: #ffd700; }
+    #super-selector button.active { background: #ffd700; color: #0d0d1a; border-color: #ffd700; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Snake</h1>
 
-  <div id="scoreboard">
-    SCORE: <span id="score">0</span> &nbsp;&nbsp; BEST: <span id="best">0</span>
-  </div>
+  <div class="game-card">
 
-  <div style="position: relative;">
-    <canvas id="canvas" width="400" height="400"></canvas>
-    <div id="overlay">
-      <h2 id="overlay-title">Snake</h2>
-      <p id="overlay-sub" class="big-score"></p>
-      <div class="option-row">
+    <div class="game-header">
+      <h1>Snake</h1>
+      <div class="scores">
+        <div class="score-item">
+          <span class="score-label">Score</span>
+          <span id="score">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Best</span>
+          <span id="best">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="canvas" width="540" height="540"></canvas>
+      <div id="overlay">
+        <h2 id="overlay-title">Snake</h2>
+        <p id="overlay-sub" class="big-score"></p>
+        <button id="start-btn">Start</button>
+        <p id="hint">Arrow keys or WASD &nbsp;·&nbsp; Space to pause</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="option-group">
         <span class="option-label">Speed</span>
-        <div id="speed-selector">
+        <div class="btn-row" id="speed-selector">
           <button data-speed="200">Slow</button>
           <button data-speed="120" class="active">Normal</button>
           <button data-speed="60">Fast</button>
         </div>
       </div>
-      <div class="option-row">
+      <div class="option-group">
         <span class="option-label">Food</span>
-        <div id="food-selector">
+        <div class="btn-row" id="food-selector">
           <button data-food="1">1</button>
           <button data-food="2" class="active">2</button>
           <button data-food="3">3</button>
         </div>
       </div>
-      <div class="option-row">
-        <span class="option-label">Super Mode</span>
-        <div id="super-selector">
+      <div class="option-group">
+        <span class="option-label">Super</span>
+        <div class="btn-row" id="super-selector">
           <button data-super="off" class="active">Off</button>
           <button data-super="on">On</button>
         </div>
       </div>
-      <button id="start-btn">Start</button>
-      <p id="hint">Arrow keys or WASD &nbsp;|&nbsp; Space to pause</p>
     </div>
+
   </div>
 
-</body>
 <script>
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
+  const canvasWrap = document.querySelector('.canvas-wrap');
   const overlay = document.getElementById('overlay');
   const overlayTitle = document.getElementById('overlay-title');
   const overlaySub = document.getElementById('overlay-sub');
@@ -206,6 +280,7 @@
 
   let snake, dir, nextDir, foods, score, best, gameLoop, running, paused, foodCount = 2;
   let superMode = false, superFood = null, superSpawnTimer, superExpireTimer, growPending = 0;
+  let superActiveUntil = 0;
 
   best = parseInt(localStorage.getItem('snake-best') || '0');
   bestEl.textContent = best;
@@ -237,7 +312,7 @@
       foods.some(f => f.x === pos.x && f.y === pos.y)
     );
     superFood = pos;
-    superExpireTimer = setTimeout(() => { superFood = null; }, 6000);
+    superExpireTimer = setTimeout(() => { superFood = null; }, 5000);
   }
 
   function spawnFood() {
@@ -253,15 +328,19 @@
 
   function tick() {
     dir = nextDir;
-    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    const head = {
+      x: (snake[0].x + dir.x + COLS) % COLS,
+      y: (snake[0].y + dir.y + ROWS) % ROWS
+    };
 
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS ||
-        snake.some(s => s.x === head.x && s.y === head.y)) {
+    if (snake.some(s => s.x === head.x && s.y === head.y)) {
       endGame();
       return;
     }
 
     snake.unshift(head);
+
+    let ateFood = false;
 
     if (superFood && head.x === superFood.x && head.y === superFood.y) {
       clearTimeout(superExpireTimer);
@@ -269,29 +348,27 @@
       growPending += 2;
       score += 2;
       scoreEl.textContent = score;
-      if (score > best) {
-        best = score;
-        bestEl.textContent = best;
-        localStorage.setItem('snake-best', best);
-      }
+      if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('snake-best', best); }
+      ateFood = true;
+      superActiveUntil = Date.now() + 2000;
+      canvasWrap.classList.remove('super-flash');
+      void canvasWrap.offsetWidth;
+      canvasWrap.classList.add('super-flash');
     }
 
     const eatenIndex = foods.findIndex(f => f.x === head.x && f.y === head.y);
     if (eatenIndex !== -1) {
       score++;
       scoreEl.textContent = score;
-      if (score > best) {
-        best = score;
-        bestEl.textContent = best;
-        localStorage.setItem('snake-best', best);
-      }
+      if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('snake-best', best); }
       foods.splice(eatenIndex, 1);
       spawnFood();
       growPending++;
+      ateFood = true;
     }
 
-    if (growPending > 0) {
-      growPending--;
+    if (ateFood || growPending > 0) {
+      if (growPending > 0) growPending--;
     } else {
       snake.pop();
     }
@@ -303,15 +380,13 @@
     ctx.fillStyle = '#0f0f23';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Grid dots
-    ctx.fillStyle = '#1e1e3a';
+    ctx.fillStyle = '#1a1a35';
     for (let x = 0; x < COLS; x++) {
       for (let y = 0; y < ROWS; y++) {
         ctx.fillRect(x * CELL + CELL / 2 - 1, y * CELL + CELL / 2 - 1, 2, 2);
       }
     }
 
-    // Food
     foods.forEach(food => {
       const fx = food.x * CELL + CELL / 2;
       const fy = food.y * CELL + CELL / 2;
@@ -324,18 +399,21 @@
     });
     ctx.shadowBlur = 0;
 
-    // Super food
     if (superFood) {
-      const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 200);
+      const now = Date.now();
+      const pulse = 0.85 + 0.15 * Math.sin(now / 180);
+      const spin = now / 1200;
       const sx = superFood.x * CELL + CELL / 2;
       const sy = superFood.y * CELL + CELL / 2;
-      const r = (CELL / 2 - 2) * pulse;
+      const outerR = CELL * 0.72 * pulse;
+      const innerR = outerR * 0.42;
       ctx.shadowColor = '#ffd700';
-      ctx.shadowBlur = 20 * pulse;
+      ctx.shadowBlur = 28 * pulse;
       ctx.fillStyle = '#ffd700';
       ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      for (let i = 0; i < 10; i++) {
+        const angle = (i * Math.PI / 5) - Math.PI / 2 + spin;
+        const r = i % 2 === 0 ? outerR : innerR;
         const x = sx + r * Math.cos(angle);
         const y = sy + r * Math.sin(angle);
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
@@ -345,12 +423,20 @@
       ctx.shadowBlur = 0;
     }
 
-    // Snake
+    const isSuper = Date.now() < superActiveUntil;
+    const pulse = isSuper ? 0.7 + 0.3 * Math.sin(Date.now() / 80) : 1;
+
     snake.forEach((seg, i) => {
       const t = 1 - i / snake.length;
-      ctx.fillStyle = i === 0 ? '#4ecca3' : `hsl(162, 60%, ${20 + t * 30}%)`;
-      ctx.shadowColor = i === 0 ? '#4ecca3' : 'transparent';
-      ctx.shadowBlur = i === 0 ? 10 : 0;
+      if (isSuper) {
+        ctx.fillStyle = i === 0 ? '#ffd700' : `hsl(45, 100%, ${25 + t * 35}%)`;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = (i === 0 ? 22 : 10) * pulse;
+      } else {
+        ctx.fillStyle = i === 0 ? '#4ecca3' : `hsl(162, 60%, ${20 + t * 30}%)`;
+        ctx.shadowColor = i === 0 ? '#4ecca3' : 'transparent';
+        ctx.shadowBlur = i === 0 ? 10 : 0;
+      }
       const pad = i === 0 ? 1 : 2;
       ctx.beginPath();
       ctx.roundRect(seg.x * CELL + pad, seg.y * CELL + pad, CELL - pad * 2, CELL - pad * 2, 3);
@@ -428,7 +514,12 @@
   startBtn.addEventListener('click', startGame);
 
   document.addEventListener('keydown', e => {
-    if (e.key === ' ') { e.preventDefault(); togglePause(); return; }
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (overlay.style.display !== 'none') { startGame(); return; }
+      togglePause();
+      return;
+    }
     if (!running || paused) return;
     const map = {
       ArrowUp:    { x: 0, y: -1 }, w: { x: 0, y: -1 },
